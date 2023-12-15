@@ -12,6 +12,8 @@ pacman::p_load("dplyr", "ggplot2", "here", "readxl", "ggtext")
 
 font <- "Helvetica Neue"
 
+w = 16
+
 theme <- theme_light(base_family = font) +
   theme(panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
@@ -44,7 +46,7 @@ read_xlsx(here("_data", "stips.xlsx")) %>%
        subtitle = "CUS, KAS, und FNS fördern vor allem reine SK-Pauschale Empfänger:innen.",
        caption = "Datenquelle: BMBF via IFG-Antrag/FragDenStaat.de")
 
-ggsave(here("_plots","entwicklung_anteil_bafoeg.png"), width = 16, height = 9, units = "cm", dpi = 600)  
+ggsave(here("_plots","entwicklung_anteil_bafoeg.png"), width = w , height = w * (9/16), units = "cm", dpi = 600 * (16/w))  
 
 # Aufschlüsselung Wachstum 2018 - 2022 BAFöG/Nicht ----
 
