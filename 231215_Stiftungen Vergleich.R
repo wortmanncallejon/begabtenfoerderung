@@ -12,7 +12,7 @@ pacman::p_load("dplyr", "ggplot2", "here", "readxl", "ggtext")
 
 font <- "Helvetica Neue"
 
-w = 16
+w = 18
 
 theme <- theme_light(base_family = font) +
   theme(panel.grid.major.x = element_blank(),
@@ -42,7 +42,7 @@ read_xlsx(here("_data", "stips.xlsx")) %>%
   facet_wrap(~`Art der Förderung`) +
   theme +
   theme(legend.position = "none") +
-  labs(title = "AVICENNA, Luxemborg- und Böckler-Stiftungen fördern die meisten\nBAFöG-berechtigten Studierenden.",
+  labs(title = "AVICENNA, Luxemborg- und Böckler-Stiftungen fördern die meisten<br>BAFöG-berechtigten Studierenden.",
        subtitle = "CUS, KAS, und FNS fördern vor allem reine SK-Pauschale Empfänger:innen.",
        caption = "Datenquelle: BMBF via IFG-Antrag/FragDenStaat.de")
 
