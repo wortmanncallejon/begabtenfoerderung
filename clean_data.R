@@ -26,7 +26,9 @@ förderungsart <- read_xlsx(here("_data", files[2]), range = "A2:U16") |>
     select(Werk, Jahr, type, value) |>
     filter(Werk != "Jahr") |>
     pivot_wider(names_from = type, values_from = value) |>
-    arrange(Werk, Gesamt, SKP, Teil, Voll, Jahr)
+    select(Werk, Gesamt, SKP, Teil, Voll, Jahr) |>
+    bind_rows(read_xlsx(here("_data", "stips.xlsx"))) |>
+    arrange(Jahr, Werk)
 
 
 frauen <- read_xlsx(here("_data", files[2]), range = "A2:K15", sheet = 2) |> 
@@ -55,4 +57,17 @@ erstakademikerinnen <- read_xlsx(here("_data", files[2]), range = "A2:K15", shee
 
 
 
+## Overview over other Criteria
+
+read_xlsx(here("_data", files[2]), sheet = 5) |> 
+    mutate(across(everything(), as.character)) |>
+    pivot_longer(-c("Jahr", Werke), names_to = "Kriterium", values_to = "n") |>
+    summarise(n = sum(as.integer(n), na.rm = T),
+              .by = c("Kriterium")) |>
+    rowwise() |>
+    mutate(var_1 = unlist(strsplit(Kriterium, " - "))[1],
+           var_2 = unlist(strsplit(Kriterium, " - "))[2],
+           var_3 = unlist(strsplit(Kriterium, " - "))[3]) |>
+    ungroup() |>
+    select(var_1, var_2, var_3, n)
 
