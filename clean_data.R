@@ -28,15 +28,24 @@ förderungsart <- read_xlsx(here("_data", files[2]), range = "A2:U16") |>
     pivot_wider(names_from = type, values_from = value) |>
     select(Werk, Gesamt, SKP, Teil, Voll, Jahr) |>
     bind_rows(read_xlsx(here("_data", "stips.xlsx"))) |>
+    pivot_longer(-c("Werk", "Jahr", "Gesamt"), names_to = "Ausprägung", values_to = "n") |>
+    mutate(Variable = "Förderungsart") |>
+    rename(N = Gesamt) |>
+    select(Werk, Jahr, N, Variable, Ausprägung, n) |>
     arrange(Jahr, Werk)
-
 
 frauen <- read_xlsx(here("_data", files[2]), range = "A2:K15", sheet = 2) |> 
     pivot_longer(-Werke, names_to = "Jahr", values_to = "Frauen") |>
     mutate(Werk = sub("\\*", "", Werke),
            Jahr = as.integer(Jahr)) |>
-    select(Werk, Jahr, Frauen)
-
+    select(Werk, Jahr, Frauen) |>
+    left_join(select(förderungsart, Werk, Jahr, N), by = c("Werk", "Jahr")) |>
+    distinct(Werk, Jahr, .keep_all = T) |>
+    mutate(Männer = N - Frauen) |>
+    pivot_longer(-c("Werk", "Jahr", "N"), names_to = "Ausprägung", values_to = "n") |>
+    mutate(Variable = "Geschlecht") |>
+    select(Werk, Jahr, N, Variable, Ausprägung, n) |>
+    arrange(Jahr, Werk)
 
 migrationshintergrund <- read_xlsx(here("_data", files[2]), range = "A2:K15", sheet = 3) |> 
     mutate(across(everything(), as.character)) |>
@@ -44,18 +53,21 @@ migrationshintergrund <- read_xlsx(here("_data", files[2]), range = "A2:K15", sh
     mutate(Werk = sub("\\*", "", Werke),
            Jahr = as.integer(Jahr),
            Migrationshintergrund = as.integer(ifelse(Migrationshintergrund == "-", NA, Migrationshintergrund))) |>
-    select(Werk, Jahr, Migrationshintergrund)
+    select(Werk, Jahr, Migrationshintergrund) |>
+    left_join(select(förderungsart, Werk, Jahr, N), by = c("Werk", "Jahr")) |>
+    distinct(Werk, Jahr, .keep_all = T) |>
+    mutate(`Kein Migrationshintergrund` = N - Migrationshintergrund) |>
+    pivot_longer(-c("Werk", "Jahr", "N"), names_to = "Ausprägung", values_to = "n") |>
+    mutate(Variable = "Migrationshintergrund") |>
+    select(Werk, Jahr, N, Variable, Ausprägung, n) |>
+    arrange(Jahr, Werk)
 
 erstakademikerinnen <- read_xlsx(here("_data", files[2]), range = "A2:K15", sheet = 4) |> 
     mutate(across(everything(), as.character)) |>
     pivot_longer(-Werke, names_to = "Jahr", values_to = "Erstakademikerinnen") |>
     mutate(Werk = sub("\\*\\*", "", Werke),
            Jahr = as.integer(Jahr),
-           Erstakademikerinnen = as.integer(ifelse(Erstakademikerinnen %in% c("0", "***"), NA, Erstakademikerinnen))) |>
-    select(Werk, Jahr, Erstakademikerinnen)
-
-
-
+           Erstakademikerinnen = as.integer(ifelse(Erstakademikerinnen %in% c("0", "***"), NA, Erstakademikerinnen)))
 
 ## Overview over other Criteria
 
@@ -70,4 +82,3 @@ read_xlsx(here("_data", files[2]), sheet = 5) |>
            var_3 = unlist(strsplit(Kriterium, " - "))[3]) |>
     ungroup() |>
     select(var_1, var_2, var_3, n)
-
