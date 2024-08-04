@@ -48,5 +48,17 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-marks.R
 .DS_Store
+
+
+
+entwicklung_anteil_bafoeg.png
+entwicklung_hbs.png
+förderung_stips.png
+gesamtstips.png         
+wachstum_aufgeschluesselt.png
+wachstum_hbs.png
+wachstum.png
+231212_HBS.R
+231215_Stiftungen Vergleich.R
+marks.R
