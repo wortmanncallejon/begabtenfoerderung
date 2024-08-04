@@ -62,6 +62,9 @@ migrationshintergrund <- read_xlsx(here("_data", files[2]), range = "A2:K15", sh
     select(Werk, Jahr, N, Variable, Ausprägung, n) |>
     arrange(Jahr, Werk)
 
+bind_rows(förderungsart, frauen, migrationshintergrund) |> 
+    writexl::write_xlsx(here("_data", "clean_data.xlsx"))
+
 erstakademikerinnen <- read_xlsx(here("_data", files[2]), range = "A2:K15", sheet = 4) |> 
     mutate(across(everything(), as.character)) |>
     pivot_longer(-Werke, names_to = "Jahr", values_to = "Erstakademikerinnen") |>
