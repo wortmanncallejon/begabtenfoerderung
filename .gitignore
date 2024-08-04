@@ -48,10 +48,6 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-.DS_Store
-
-
-
 entwicklung_anteil_bafoeg.png
 entwicklung_hbs.png
 förderung_stips.png
@@ -62,3 +58,7 @@ wachstum.png
 231212_HBS.R
 231215_Stiftungen Vergleich.R
 marks.R
+
+
+.DS_Store
+_plots/.DS_Store
