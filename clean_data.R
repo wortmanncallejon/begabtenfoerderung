@@ -4,15 +4,24 @@
 
 # AUTHOR: Felix Wortmann Callejón
 
-# Date: 2024-08-04
+# Date: 2025-07-03
 
 ###########################################
 
+
+# Setup ----
+## Load dependencies
+
 #install.packages("pacman")
 
-pacman::p_load("dplyr", "ggplot2", "here", "readxl", "tidyr")
+pacman::p_load("dplyr", "ggplot2", "here", "readxl", "tidyr", "purrr", "stringr", "writexl")
 
+## Load data files
 files <- list.files(here("_data"))
+files <- files[grep("frderung(\\d{4})?\\.xlsx$", files)]
+
+# Read and process "clean" data from 2013 - 2020 ----
+## BMBF provided us with a pre-cleaned set of variables of special interest. These are read here.
 
 förderungsart <- read_xlsx(here("_data", files[2]), range = "A2:U16") |> 
     pivot_longer(-Werk) |> 
@@ -62,9 +71,59 @@ migrationshintergrund <- read_xlsx(here("_data", files[2]), range = "A2:K15", sh
     select(Werk, Jahr, N, Variable, Ausprägung, n) |>
     arrange(Jahr, Werk)
 
+
+## Combine all data and write to Excel file
 bind_rows(förderungsart, frauen, migrationshintergrund) |> 
     writexl::write_xlsx(here("_data", "clean_data.xlsx"))
 
+# Additional data for 2023 and 2024 ----
+
+## Common cleaning steps
+new_data <- files[grep("studien", files)][2:3] |>
+    map(~read_xlsx(here("_data", .x))) |>
+    bind_rows(.id = "Jahr") |>
+    rename(Werk = `Project type - Begabtenfoerderungswerke text`,
+           N = `Gesamtanzahl Geförderte`,
+           SKP = `nur Studienkostenpauschale`,
+           Teil = `Geförderte mit Teilstipendium`,
+           Voll = `Geförderte mit Vollstipendium`,
+           Frauen = `Gesamtanzahl - weiblich`,
+           Migrationshintergrund = `Gesamtanzahl - mit Migrationshintergrund`) |>
+    rowwise() |>
+    mutate(Jahr = ifelse(Jahr == 1, 2024, 2023),
+           Werk = unlist(str_split(Werk, " "))[1]) |>
+    select(Werk, Jahr:Migrationshintergrund)
+
+## Create new data frames for 2023 and 2024
+förderungsart_2324 <- new_data |>
+    select(Werk:N, SKP:Voll) |>
+    pivot_longer(SKP:Voll, names_to = "Ausprägung", values_to = "n") |>
+    mutate(Variable = "Förderungsart") |>
+    select(Werk, Jahr, N, Variable, Ausprägung, n)
+
+frauen_2324 <- new_data |>
+    select(Werk:N, Frauen) |>
+    mutate(Männer = N - Frauen) |>
+    pivot_longer(Frauen:Männer, names_to = "Ausprägung", values_to = "n") |>
+    mutate(Variable = "Geschlecht") |>
+    select(Werk, Jahr, N, Variable, Ausprägung, n)
+
+migrationshintergrund_2324 <- new_data |>
+    select(Werk:N, Migrationshintergrund) |>
+    mutate(`Kein Migrationshintergrund` = N - Migrationshintergrund) |>
+    pivot_longer(Migrationshintergrund:`Kein Migrationshintergrund`, names_to = "Ausprägung", values_to = "n") |>
+    mutate(Variable = "Migrationshintergrund") |>
+    select(Werk, Jahr, N, Variable, Ausprägung, n)
+
+## Combine new data and write to Excel file
+bind_rows(förderungsart_2324, frauen_2324, migrationshintergrund_2324) |> 
+    bind_rows(förderungsart, frauen, migrationshintergrund) |>
+    arrange(Jahr, Werk) |>
+    writexl::write_xlsx(here("_data", "clean_data.xlsx"))
+
+# Defunct code ---- 
+
+## Measurement of this data is really opaque, hence it is not processed further
 erstakademikerinnen <- read_xlsx(here("_data", files[2]), range = "A2:K15", sheet = 4) |> 
     mutate(across(everything(), as.character)) |>
     pivot_longer(-Werke, names_to = "Jahr", values_to = "Erstakademikerinnen") |>
@@ -72,8 +131,7 @@ erstakademikerinnen <- read_xlsx(here("_data", files[2]), range = "A2:K15", shee
            Jahr = as.integer(Jahr),
            Erstakademikerinnen = as.integer(ifelse(Erstakademikerinnen %in% c("0", "***"), NA, Erstakademikerinnen)))
 
-## Overview over other Criteria
-
+## Overview over other criteria from base data 
 read_xlsx(here("_data", files[2]), sheet = 5) |> 
     mutate(across(everything(), as.character)) |>
     pivot_longer(-c("Jahr", Werke), names_to = "Kriterium", values_to = "n") |>
