@@ -262,4 +262,128 @@ quoten_werk |>
 ggsave(here("_plots", "bafoeg_anteil_pro_werk.png"), width = 28, height = 20, dpi = 300, units = "cm")
 
 
+## 8f. Trendvergleich: BAföG-Rückgang allgemein vs. in Begabtenförderung ----
+#  Zentrale Frage: Ist der Rückgang des BAföG-Anteils bei den Stipendiaten
+#  stärker als der allgemeine Rückgang der BAföG-Quote unter Studierenden?
+
+trend_data <- quoten_agg |>
+  transmute(
+    jahr,
+    `BAföG-Quote\n(Empfänger / Studierende)` = bafoeg_quote,
+    `BAföG-Anteil Stipendiaten\n(BAföG-ber. Stip. / alle Stip.)` = stip_bafoeg_anteil
+  ) |>
+  pivot_longer(-jahr, names_to = "kennzahl", values_to = "wert") |>
+  mutate(
+    basis = wert[jahr == min(jahr)],
+    .by = kennzahl
+  ) |>
+  mutate(index = wert / basis * 100)
+
+# Endwerte für Annotation
+trend_endwerte <- trend_data |> filter(jahr == max(jahr))
+trend_startwerte <- trend_data |> filter(jahr == min(jahr))
+
+ggplot(trend_data, aes(x = jahr, y = index, color = kennzahl)) +
+  geom_hline(yintercept = 100, linetype = "dotted", color = "grey60") +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2.5) +
+  geom_text(data = trend_endwerte,
+            aes(label = paste0(round(index, 1))),
+            hjust = -0.3, size = 3.5, fontface = "bold", show.legend = FALSE) +
+  scale_x_continuous(NULL,
+    breaks = seq(min(quoten_agg$jahr), max(quoten_agg$jahr), 1),
+    labels = function(x) paste0("'", substr(as.character(x), 3, 4)),
+    expand = expansion(mult = c(0.02, 0.08))) +
+  scale_y_continuous("Index (2013 = 100)",
+    breaks = seq(60, 100, 10),
+    labels = function(x) paste0(x)) +
+  scale_color_manual(NULL, values = c("#440154", "#21918c")) +
+  labs(
+    title = "BAföG-Rückgang: allgemein vs. in der Begabtenförderung",
+    subtitle = paste0(
+      "Beide Quoten indexiert auf ", min(quoten_agg$jahr), " = 100 | ",
+      "Stärkerer Rückgang = stärkere Abkopplung von Bedürftigen")) +
+  theme_stip +
+  theme(legend.key.width = unit(1.5, "cm"))
+
+ggsave(here("_plots", "trendvergleich_bafoeg.png"), width = 22, height = 13, dpi = 300, units = "cm")
+
+
+## 8g. Balkendiagramm: Relativer Rückgang im direkten Vergleich ----
+
+vergleich_data <- tibble(
+  kategorie = c(
+    "BAföG-Quote\n(Empfänger / Studierende)",
+    "BAföG-Anteil\nStipendiaten"),
+  start = c(earliest$bafoeg_quote, earliest$stip_bafoeg_anteil),
+  end = c(latest$bafoeg_quote, latest$stip_bafoeg_anteil)
+) |>
+  mutate(
+    rel_change = (end / start - 1) * 100,
+    kategorie = factor(kategorie, levels = kategorie)
+  )
+
+ggplot(vergleich_data, aes(x = kategorie, y = rel_change, fill = kategorie)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = paste0(round(rel_change, 1), "%")),
+            vjust = 1.5, size = 5, fontface = "bold", color = "white") +
+  geom_text(aes(label = paste0(round(start * 100, 1), "% → ", round(end * 100, 1), "%"),
+                y = rel_change / 2),
+            size = 3.5, color = "white") +
+  scale_y_continuous("Relative Veränderung (%)",
+    labels = function(x) paste0(x, "%"),
+    expand = expansion(mult = c(0.15, 0.05))) +
+  scale_fill_manual(values = c("#440154", "#21918c"), guide = "none") +
+  labs(
+    x = NULL,
+    title = paste0("Relativer Rückgang ", earliest$jahr, " → ", latest$jahr),
+    subtitle = paste0(
+      "Der BAföG-Anteil unter Stipendiaten ist schwächer gesunken\n",
+      "als die BAföG-Quote unter allen Studierenden")) +
+  theme_stip
+
+ggsave(here("_plots", "vergleich_rueckgang_bafoeg.png"), width = 18, height = 14, dpi = 300, units = "cm")
+
+
+# Konsolen-Ausgabe: Trendvergleich
+message("\n", strrep("=", 60))
+message("TRENDVERGLEICH: BAföG-Rückgang allgemein vs. Begabtenförderung")
+message(strrep("=", 60))
+
+bafoeg_start <- earliest$bafoeg_quote
+bafoeg_end <- latest$bafoeg_quote
+stip_start <- earliest$stip_bafoeg_anteil
+stip_end <- latest$stip_bafoeg_anteil
+
+message("\nBAföG-Quote (Empfänger / Studierende):")
+message("  ", earliest$jahr, ": ", round(bafoeg_start * 100, 1), "%")
+message("  ", latest$jahr, ":  ", round(bafoeg_end * 100, 1), "%")
+message("  Rückgang:  ", round((bafoeg_end - bafoeg_start) * 100, 1), " Pp. ",
+        "(relativ: ", round((bafoeg_end / bafoeg_start - 1) * 100, 1), "%)")
+
+message("\nBAföG-Anteil Stipendiaten (BAföG-ber. / alle Stip.):")
+message("  ", earliest$jahr, ": ", round(stip_start * 100, 1), "%")
+message("  ", latest$jahr, ":  ", round(stip_end * 100, 1), "%")
+message("  Rückgang:  ", round((stip_end - stip_start) * 100, 1), " Pp. ",
+        "(relativ: ", round((stip_end / stip_start - 1) * 100, 1), "%)")
+
+rel_bafoeg <- (bafoeg_end / bafoeg_start - 1) * 100
+rel_stip <- (stip_end / stip_start - 1) * 100
+
+if (abs(rel_bafoeg) > abs(rel_stip)) {
+  message("\n→ FAZIT: Die BAföG-Quote unter allen Studierenden ist STÄRKER gesunken (",
+          round(rel_bafoeg, 1), "%) als der BAföG-Anteil unter Stipendiaten (",
+          round(rel_stip, 1), "%).")
+  message("  Der Rückgang des BAföG-Anteils in der Begabtenförderung spiegelt")
+  message("  weitgehend den allgemeinen BAföG-Rückgang wider — er ist sogar")
+  message("  schwächer als im Gesamttrend.")
+} else {
+  message("\n→ FAZIT: Der BAföG-Anteil unter Stipendiaten ist STÄRKER gesunken (",
+          round(rel_stip, 1), "%) als die BAföG-Quote unter allen Studierenden (",
+          round(rel_bafoeg, 1), "%).")
+  message("  Die Begabtenförderung hat sich überproportional von BAföG-Berechtigten")
+  message("  abgekoppelt — der Rückgang geht über den allgemeinen Trend hinaus.")
+}
+
+
 message("\n✓ Alle Visualisierungen in _plots/ gespeichert")

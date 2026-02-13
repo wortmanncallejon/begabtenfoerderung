@@ -63,6 +63,51 @@ pacman::p_load("dplyr", "tidyr", "ggplot2", "readxl", "readr",
                "writexl", "here", "purrr", "stringr", "scales", "viridis")
 ```
 
+## Zentrale Ergebnisse (Stand 2024)
+
+### 1. BAföG-Anteil in der Begabtenförderung sinkt — aber weniger stark als die BAföG-Quote insgesamt
+
+| Kennzahl | 2013 | 2024 | Veränderung (relativ) |
+|----------|------|------|-----------------------|
+| BAföG-Quote (Empfänger / Studierende) | 25,4% | 16,9% | **-33,6%** |
+| BAföG-Anteil Stipendiaten (BAföG-ber. / alle Stip.) | 50,6% | 37,6% | **-25,8%** |
+
+Der Rückgang des BAföG-Anteils unter Stipendiaten (-25,8%) ist **schwächer** als der allgemeine Rückgang der BAföG-Quote unter allen Studierenden (-33,6%). Die Begabtenförderung hat sich also nicht überproportional von BAföG-Berechtigten abgekoppelt — der Trend spiegelt weitgehend den allgemeinen BAföG-Rückgang wider.
+
+### 2. Stipendiaten machen nur ~1% aller Studierenden aus
+
+| | 2013 | 2024 |
+|--|------|------|
+| Studierende gesamt | 2.616.881 | 2.864.122 |
+| BAföG-Empfänger | 665.928 (25,4%) | 483.814 (16,9%) |
+| Stipendiaten (Begabtenf.) | 25.824 (0,99%) | 31.447 (1,10%) |
+
+### 3. BAföG-Berechtigte sind pro Kopf eher überrepräsentiert
+
+| Kennzahl (2024) | Wert |
+|-----------------|------|
+| P(Stipendium \| BAföG-berechtigt) | 0,024% |
+| P(Stipendium \| nicht BAföG-berechtigt) | 0,008% |
+| Verhältnis (Überrepräsentationsfaktor) | 0,32x |
+
+Ein Wert unter 1 bedeutet: BAföG-Berechtigte sind **häufiger** unter den Stipendiaten vertreten als Nicht-BAföG-Berechtigte — relativ zu ihrer Gruppengröße.
+
+### 4. Große Unterschiede zwischen Förderwerken
+
+Die Förderwerke unterscheiden sich stark im BAföG-Anteil ihrer Stipendiaten. Werke wie die Hans-Böckler-Stiftung und die Rosa-Luxemburg-Stiftung haben deutlich höhere BAföG-Anteile als z.B. die Studienstiftung des deutschen Volkes oder die Stiftung der Deutschen Wirtschaft.
+
+## Generierte Visualisierungen
+
+| Datei | Inhalt |
+|-------|--------|
+| `kontext_log.png` | Studierende, BAföG-Empfänger und Stipendiaten absolut (log-Skala) |
+| `quoten_zeitreihe.png` | BAföG-Quote, BAföG-Anteil Stipendiaten und Stipendiaten-Quote im Zeitverlauf |
+| `werk_ranking_bafoeg.png` | Ranking der Förderwerke nach BAföG-Anteil |
+| `ueberrepraesentation.png` | Überrepräsentationsfaktor Nicht-BAföG-Berechtigter über Zeit |
+| `bafoeg_anteil_pro_werk.png` | BAföG-Anteil pro Förderwerk im Zeitverlauf |
+| `trendvergleich_bafoeg.png` | Indexierter Trendvergleich: BAföG-Rückgang allgemein vs. Begabtenförderung |
+| `vergleich_rueckgang_bafoeg.png` | Relativer Rückgang im direkten Balkenvergleich |
+
 ## Berechnete Kennzahlen
 
 | Kennzahl | Beschreibung |
